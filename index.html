@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>İftar & Sahur Sayacı</title>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="bg">
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="aurora a3"></div>
+
+    <div class="grid"></div>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+
+    <canvas id="fxParticles" class="particles"></canvas>
+  </div>
+
+  <main class="wrap">
+    <header class="topbar glass tilt" data-tilt>
+      <div class="brand">
+        <div class="logoOrb"></div>
+        <div class="brandText">
+          <div class="title">İftar & Sahur</div>
+          <div class="subtitle" id="locationLine">Konum seçilmedi</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnGeo" class="btn neon">Konumdan Bul</button>
+        <button id="btnRefresh" class="btn ghost">Yenile</button>
+      </div>
+    </header>
+
+    <section class="panel glass tilt" data-tilt>
+      <div class="panelHead">
+        <div class="panelTitleWrap">
+          <div class="panelTitle glitch" id="nextTitle" data-glitch>Konum seç</div>
+          <div class="panelMeta">
+            <span id="dateLine">--</span>
+            <span class="sep">/</span>
+            <span>Hedef: <b id="nextTime">--:--</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="bigCard glass tilt" data-tilt>
+          <div class="bigTop">
+            <div class="badge" id="modeBadge">LIVE</div>
+            <div class="smallHint" id="progressHint">--</div>
+          </div>
+
+          <div class="arcWrap">
+            <svg class="arc" viewBox="0 0 240 150" aria-label="progress">
+              <defs>
+                <!-- Smooth color morph gradient -->
+                <linearGradient id="gArc" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="rgb(134,255,209)">
+                    <animate attributeName="stop-color"
+                      dur="8s" repeatCount="indefinite"
+                      values="rgb(134,255,209); rgb(106,166,255); rgb(255,90,198); rgb(255,211,106); rgb(134,255,209)" />
+                  </stop>
+                  <stop offset="45%" stop-color="rgb(106,166,255)">
+                    <animate attributeName="stop-color"
+                      dur="8s" repeatCount="indefinite"
+                      values="rgb(106,166,255); rgb(255,90,198); rgb(255,211,106); rgb(134,255,209); rgb(106,166,255)" />
+                  </stop>
+                  <stop offset="100%" stop-color="rgb(255,90,198)">
+                    <animate attributeName="stop-color"
+                      dur="8s" repeatCount="indefinite"
+                      values="rgb(255,90,198); rgb(255,211,106); rgb(134,255,209); rgb(106,166,255); rgb(255,90,198)" />
+                  </stop>
+                </linearGradient>
+
+                <filter id="softGlow">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feColorMatrix in="blur" type="matrix"
+                    values="1 0 0 0 0
+                            0 1 0 0 0
+                            0 0 1 0 0
+                            0 0 0 0.8 0" result="glow"/>
+                  <feMerge>
+                    <feMergeNode in="glow"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <path id="arcBg" d="M 24 120 A 96 96 0 0 1 216 120" />
+              <path id="arcFg" d="M 24 120 A 96 96 0 0 1 216 120" />
+            </svg>
+
+            <div class="center">
+              <div class="time" id="countdown">--:--:--</div>
+              <div class="sub">kalan</div>
+            </div>
+          </div>
+
+          <div class="miniGrid">
+            <div class="mini glass">
+              <div class="miniLabel">Bugün İftar</div>
+              <div class="miniValue" id="iftarToday">--:--</div>
+            </div>
+            <div class="mini glass">
+              <div class="miniLabel">Bugün İmsak</div>
+              <div class="miniValue" id="imsakToday">--:--</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side glass tilt" data-tilt>
+          <div class="sideTitle">Ayarlar</div>
+
+          <div class="fieldRow">
+            <div class="field">
+              <label for="city">Şehir</label>
+              <input id="city" placeholder="Örn: Lefkoşa" />
+            </div>
+            <div class="field">
+              <label for="country">Ülke</label>
+              <input id="country" placeholder="Örn: Cyprus" />
+            </div>
+          </div>
+
+          <button id="btnCity" class="btn mint wide">Şehir/Ülke ile Bul</button>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label for="method">Hesaplama</label>
+            <select id="method">
+              <option value="13" selected>Diyanet (Türkiye)</option>
+              <option value="2">ISNA</option>
+              <option value="3">MWL</option>
+              <option value="4">Umm Al-Qura</option>
+              <option value="5">Egyptian</option>
+              <option value="1">Karachi</option>
+            </select>
+          </div>
+
+          <div class="note">
+            “Sahur” burada pratik olarak <b>imsak (Fajr)</b> kabul edilmiştir.
+          </div>
+
+          <div class="error" id="errorBox" hidden></div>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Veriler: AlAdhan Prayer Times API
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
